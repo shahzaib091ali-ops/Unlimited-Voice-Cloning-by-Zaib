@@ -339,7 +339,6 @@ document.addEventListener('DOMContentLoaded', async function () {
     let lastMultilingualLanguage = 'en'; // Remember language selection for Multilingual model
 
     let hideChunkWarning = false;
-    let hideGenerationWarning = false;
     let currentVoiceMode = 'predefined';
     let previewAudio = null;
     let genProgressInterval = null;
@@ -438,10 +437,6 @@ document.addEventListener('DOMContentLoaded', async function () {
     const chunkWarningOkBtn = document.getElementById('chunk-warning-ok');
     const chunkWarningCancelBtn = document.getElementById('chunk-warning-cancel');
     const hideChunkWarningCheckbox = document.getElementById('hide-chunk-warning-checkbox');
-    const generationWarningModal = document.getElementById('generation-warning-modal');
-    const generationWarningAcknowledgeBtn = document.getElementById('generation-warning-acknowledge');
-    const hideGenerationWarningCheckbox = document.getElementById('hide-generation-warning-checkbox');
-
     // Model-related elements
     const modelIndicator = document.getElementById('model-indicator');
     const modelBadge = document.getElementById('model-badge');
@@ -588,7 +583,6 @@ document.addEventListener('DOMContentLoaded', async function () {
             last_chunk_size: chunkSizeSlider ? parseInt(chunkSizeSlider.value, 10) : 120,
             last_split_text_enabled: splitTextToggle ? splitTextToggle.checked : true,
             hide_chunk_warning: hideChunkWarning,
-            hide_generation_warning: hideGenerationWarning,
             theme: localStorage.getItem('uiTheme') || 'dark',
             last_preset_name: currentPresetName,
         };
@@ -995,7 +989,6 @@ document.addEventListener('DOMContentLoaded', async function () {
             initialReferenceFiles = data.reference_files || [];
             initialPredefinedVoices = data.predefined_voices || [];
             hideChunkWarning = currentUiState.hide_chunk_warning || false;
-            hideGenerationWarning = currentUiState.hide_generation_warning || false;
             currentVoiceMode = currentUiState.last_voice_mode || 'predefined';
 
             if (data.model_info) {
@@ -1069,7 +1062,6 @@ document.addEventListener('DOMContentLoaded', async function () {
         if (outputFormatSelect) outputFormatSelect.value = currentConfig?.audio_output?.format || 'mp3';
 
         if (hideChunkWarningCheckbox) hideChunkWarningCheckbox.checked = hideChunkWarning;
-        if (hideGenerationWarningCheckbox) hideGenerationWarningCheckbox.checked = hideGenerationWarning;
 
         // --- PRESET RESTORATION LOGIC ---
 
@@ -1572,13 +1564,6 @@ document.addEventListener('DOMContentLoaded', async function () {
                 return;
             }
 
-            // Check for the generation quality warning.
-            if (!hideGenerationWarning) {
-                showGenerationWarningModal();
-                return; // Stop here and let the modal handler take over.
-            }
-
-            // If the warning is hidden, proceed to the final checks.
             proceedWithSubmissionChecks();
         });
     } else {
@@ -1602,31 +1587,11 @@ document.addEventListener('DOMContentLoaded', async function () {
             }, 300);
         }
     }
-    function showGenerationWarningModal() {
-        if (generationWarningModal) {
-            generationWarningModal.style.display = 'flex';
-            generationWarningModal.classList.remove('hidden', 'opacity-0');
-            generationWarningModal.dataset.state = 'open';
-        }
-    }
-    function hideGenerationWarningModal() {
-        if (generationWarningModal) {
-            generationWarningModal.classList.add('opacity-0');
-            setTimeout(() => {
-                generationWarningModal.style.display = 'none';
-                generationWarningModal.dataset.state = 'closed';
-            }, 300);
-        }
-    }
     if (chunkWarningOkBtn) chunkWarningOkBtn.addEventListener('click', () => {
         if (hideChunkWarningCheckbox && hideChunkWarningCheckbox.checked) hideChunkWarning = true;
         hideChunkWarningModal(); debouncedSaveState(); submitTTSRequest();
     });
     if (chunkWarningCancelBtn) chunkWarningCancelBtn.addEventListener('click', hideChunkWarningModal);
-    if (generationWarningAcknowledgeBtn) generationWarningAcknowledgeBtn.addEventListener('click', () => {
-        if (hideGenerationWarningCheckbox && hideGenerationWarningCheckbox.checked) hideGenerationWarning = true;
-        hideGenerationWarningModal(); debouncedSaveState(); proceedWithSubmissionChecks();
-    });
     if (loadingCancelBtn) loadingCancelBtn.addEventListener('click', () => {
         if (isGenerating) { isGenerating = false; hideLoadingOverlay(); hideGenProgress(); }
     });
